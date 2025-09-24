@@ -1,0 +1,43 @@
+{
+  description = "Hyte Y70 Touch-Infinite Display Configuration";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    hyprland.url = "github:hyprwm/Hyprland";
+    quickshell.url = "github:outfoxxed/quickshell";
+  };
+
+  outputs = { self, nixpkgs, home-manager, hyprland, quickshell }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      nixosModules.hyte-touch = import ./modules/hyte-touch.nix;
+      
+      nixosConfigurations.hyte-system = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          ./configuration.nix
+          self.nixosModules.hyte-touch
+          hyprland.nixosModules.default
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.touchdisplay = import ./home/touchdisplay.nix;
+          }
+        ];
+        specialArgs = { inherit quickshell; };
+      };
+
+      packages.${system} = {
+        touch-widgets = pkgs.callPackage ./packages/touch-widgets.nix { inherit quickshell; };
+        system-monitor = pkgs.callPackage ./packages/system-monitor.nix {};
+      };
+    };
+}
