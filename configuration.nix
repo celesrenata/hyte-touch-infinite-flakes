@@ -1,12 +1,23 @@
 { config, pkgs, ... }:
 
 {
-  # Enable the Hyte touch display service
-  services.hyte-touch = {
-    enable = true;
-    displayOutput = "DP-3"; # Adjust based on your actual display output
-    touchDevice = "/dev/input/by-id/usb-*touch*";
+  # Minimal boot configuration
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  
+  # Minimal filesystem configuration
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
   };
+  
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-label/boot";
+    fsType = "vfat";
+  };
+
+  # Enable the Hyte touch display service (auto-detects display)
+  services.hyte-touch.enable = true;
   
   # Enable Wayland and required services
   services.xserver = {
@@ -33,23 +44,14 @@
   # Enable hardware sensors
   hardware.sensor.iio.enable = true;
   
-  # Graphics drivers (adjust based on your GPU)
-  hardware.opengl = {
-    enable = true;
-    driSupport = true;
-    driSupport32Bit = true;
-  };
-  
-  # NVIDIA support (if applicable)
-  hardware.nvidia = {
-    modesetting.enable = true;
-    open = false;
-    nvidiaSettings = true;
-  };
+  # Graphics drivers
+  hardware.graphics.enable = true;
   
   # Audio support for music visualizer
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
+  services.pipewire = {
+    enable = true;
+    pulse.enable = true;
+  };
   
   # Touch input support
   services.xserver.libinput = {

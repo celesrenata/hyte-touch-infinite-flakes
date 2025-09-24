@@ -2,25 +2,32 @@
 
 with lib;
 
+let
+  hyteDetectScript = pkgs.writeShellScript "detect-hyte-display" ''
+    # Dynamic Hyte touch display detection
+    detect_hyte_display() {
+        for card in /sys/class/drm/card*-DP-*; do
+            if [[ -f "$card/status" && "$(cat "$card/status")" == "connected" ]]; then
+                if [[ -f "$card/modes" ]]; then
+                    if grep -q "2560x682\|3840x1100" "$card/modes"; then
+                        basename "$card" | sed 's/card[0-9]*-//'
+                        return 0
+                    fi
+                fi
+            fi
+        done
+        return 1
+    }
+    
+    detect_hyte_display
+  '';
+in
 {
   options.services.hyte-touch = {
     enable = mkEnableOption "Hyte Y70 Touch-Infinite Display";
-    
-    displayOutput = mkOption {
-      type = types.str;
-      default = "DP-3";
-      description = "Display output for the touch screen";
-    };
-    
-    touchDevice = mkOption {
-      type = types.str;
-      default = "/dev/input/by-id/usb-*touch*";
-      description = "Touch input device path";
-    };
   };
 
   config = mkIf config.services.hyte-touch.enable {
-    # Create locked-down user for touch display
     users.users.touchdisplay = {
       isSystemUser = true;
       group = "touchdisplay";
@@ -31,15 +38,32 @@ with lib;
     
     users.groups.touchdisplay = {};
 
-    # Prevent Hyprland from grabbing the touch display
-    environment.etc."hypr/hyprland-exclude.conf".text = ''
-      monitor=${config.services.hyte-touch.displayOutput},disable
-    '';
+    # Dynamic Hyprland exclusion service
+    systemd.services.hyprland-exclude-hyte = {
+      description = "Exclude Hyte display from Hyprland";
+      before = [ "display-manager.service" ];
+      wantedBy = [ "multi-user.target" ];
+      
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      
+      script = ''
+        HYTE_DISPLAY=$(${hyteDetectScript})
+        if [ -n "$HYTE_DISPLAY" ]; then
+          mkdir -p /etc/hypr
+          echo "monitor=$HYTE_DISPLAY,disable" > /etc/hypr/hyprland-exclude.conf
+          echo "Excluded $HYTE_DISPLAY from Hyprland"
+        fi
+      '';
+    };
 
     # Auto-login service for touch display user
     systemd.services.touchdisplay-session = {
       description = "Touch Display Wayland Session";
-      after = [ "graphical-session.target" ];
+      after = [ "hyprland-exclude-hyte.service" "graphical-session.target" ];
+      wants = [ "hyprland-exclude-hyte.service" ];
       wantedBy = [ "multi-user.target" ];
       
       serviceConfig = {
@@ -50,20 +74,31 @@ with lib;
         Environment = [
           "XDG_RUNTIME_DIR=/run/user/999"
           "WAYLAND_DISPLAY=wayland-1"
-          "DISPLAY=:1"
         ];
-        ExecStart = "${pkgs.sway}/bin/sway --config /etc/sway/touchdisplay.conf";
         Restart = "always";
         RestartSec = "3";
       };
+      
+      script = ''
+        HYTE_DISPLAY=$(${hyteDetectScript})
+        if [ -n "$HYTE_DISPLAY" ]; then
+          export HYTE_DISPLAY
+          exec ${pkgs.sway}/bin/sway --config /etc/sway/touchdisplay.conf
+        else
+          echo "Hyte display not detected, exiting"
+          exit 1
+        fi
+      '';
     };
 
-    # Touch display Sway configuration
+    # Dynamic Sway configuration
     environment.etc."sway/touchdisplay.conf".text = ''
-      output ${config.services.hyte-touch.displayOutput} enable
-      
-      input type:touch {
-        map_to_output ${config.services.hyte-touch.displayOutput}
+      exec_always {
+        HYTE_DISPLAY=$(${hyteDetectScript})
+        if [ -n "$HYTE_DISPLAY" ]; then
+          swaymsg output $HYTE_DISPLAY enable
+          swaymsg input type:touch map_to_output $HYTE_DISPLAY
+        fi
       }
       
       exec quickshell -c /etc/quickshell/touch-config.qml
