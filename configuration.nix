@@ -39,6 +39,8 @@
     procps
     pciutils
     usbutils
+    cava          # Audio spectrum analyzer for music visualizer
+    psmisc        # For killall, pstree commands
   ];
   
   # Enable hardware sensors

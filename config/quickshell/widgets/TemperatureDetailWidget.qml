@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtCharts 2.15
+import ".." 1.0
 
 Rectangle {
     color: "#1a1a1a"

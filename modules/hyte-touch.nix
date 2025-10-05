@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, quickshell, ... }:
 
 with lib;
 
@@ -97,11 +97,14 @@ in
         HYTE_DISPLAY=$(${hyteDetectScript})
         if [ -n "$HYTE_DISPLAY" ]; then
           swaymsg output $HYTE_DISPLAY enable
-          swaymsg input type:touch map_to_output $HYTE_DISPLAY
+          # Map touch input to the Hyte display
+          for touch_device in $(swaymsg -t get_inputs | jq -r '.[] | select(.type=="touch") | .identifier'); do
+            swaymsg input $touch_device map_to_output $HYTE_DISPLAY
+          done
         fi
       }
       
-      exec quickshell -c /etc/quickshell/touch-config.qml
+      exec ${pkgs.callPackage ../packages/touch-widgets.nix { inherit quickshell; }}/bin/hyte-touch-interface
       
       # Disable all keybindings for security
       unbindall
@@ -110,6 +113,13 @@ in
     # System runtime directory for touchdisplay user
     systemd.tmpfiles.rules = [
       "d /run/user/999 0755 touchdisplay touchdisplay -"
+      "d /var/lib/touchdisplay/backgrounds 0755 touchdisplay touchdisplay -"
+    ];
+
+    # Add touch-widgets package to system packages
+    environment.systemPackages = with pkgs; [
+      (callPackage ../packages/touch-widgets.nix { inherit quickshell; })
+      jq  # For touch input detection
     ];
   };
 }
