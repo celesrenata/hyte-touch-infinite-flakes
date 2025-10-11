@@ -35,9 +35,9 @@ in
       };
     };
 
-    # Udev rule to mark DP-3 as disconnected and block access
+    # Udev rule to block DP-3 access completely
     services.udev.extraRules = ''
-      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ATTR{status}="disconnected", OWNER="root", GROUP="root", MODE="0000"
+      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", OWNER="root", GROUP="root", MODE="0000", RUN+="/usr/bin/touch /tmp/udev_dp3_blocked"
     '';
 
     # Create touchdisplay user
