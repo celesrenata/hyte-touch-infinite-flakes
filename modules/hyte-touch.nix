@@ -24,8 +24,8 @@ in
   };
 
   config = mkIf config.services.hyte-touch.enable {
-    # Disable DP-3 at kernel level (working solution)
-    boot.kernelParams = [ "video=DP-3:d" ];
+    # Don't disable DP-3 at kernel level - let gamescope access it
+    # boot.kernelParams = [ "video=DP-3:d" ];
 
     # Create touchdisplay user
     users.users.touchdisplay = {
