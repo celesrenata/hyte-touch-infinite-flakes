@@ -58,8 +58,9 @@ in
       wantedBy = [ "graphical.target" ];
       
       environment = {
-        XDG_RUNTIME_DIR = "/run/user/999";
-        DISPLAY = ":0";
+        XDG_RUNTIME_DIR = "/run/user/989";
+        WLR_DRM_DEVICES = "/dev/dri/card1";
+        WLR_DRM_CONNECTORS = "DP-3";
       };
       
       serviceConfig = {
@@ -72,9 +73,6 @@ in
       };
       
       script = ''
-        # Re-enable DP-3 that was disabled by kernel parameter
-        echo on > /sys/class/drm/card1-DP-3/dpms 2>/dev/null || true
-        
         # Start gamescope on DP-3 with quickshell
         exec ${pkgs.gamescope}/bin/gamescope -f -O DP-3 -- ${pkgs.quickshell}/bin/quickshell
       '';
