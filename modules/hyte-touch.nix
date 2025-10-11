@@ -29,6 +29,16 @@ in
   };
 
   config = mkIf config.services.hyte-touch.enable {
+    # Configure Hyprland via Home Manager to ignore DP-3
+    home-manager.users.celes = {
+      wayland.windowManager.hyprland = {
+        enable = true;
+        settings = {
+          monitor = [ "DP-3,disable" ];
+        };
+      };
+    };
+
     # Don't disable DP-3 at kernel level - let gamescope access it
     # boot.kernelParams = [ "video=DP-3:d" ];
 
@@ -92,8 +102,8 @@ in
       };
       
       script = ''
-        # Try using render node instead of card device
-        exec ${pkgs.weston}/bin/weston --backend=drm --drm-device=/dev/dri/renderD128 --tty=7 --output-name=DP-3
+        # Start weston with DRM backend on VT7 targeting DP-3 (Hyprland ignores it)
+        exec ${pkgs.weston}/bin/weston --backend=drm --drm-device=/dev/dri/card1 --tty=7 --output-name=DP-3
       '';
     };
 
