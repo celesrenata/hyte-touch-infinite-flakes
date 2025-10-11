@@ -35,9 +35,9 @@ in
       };
     };
 
-    # Udev rule to hide DP-3 from all users except touchdisplay
+    # Udev rule to mark DP-3 as disconnected and block access
     services.udev.extraRules = ''
-      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ENV{SYSTEMD_WANTS}="", ENV{SYSTEMD_USER_WANTS}="", ENV{ID_SEAT}="", TAG-="seat", TAG-="uaccess", OWNER="touchdisplay", GROUP="touchdisplay", MODE="0600"
+      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ATTR{status}="disconnected", OWNER="root", GROUP="root", MODE="0000"
     '';
 
     # Create touchdisplay user

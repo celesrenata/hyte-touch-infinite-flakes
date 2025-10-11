@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "mcp-ollama": {
+      "command": "cd /home/celes/ai/mcp/mcp-ollama && nix-shell",
+      "args": [],
+      "env": {},
+      "timeout": 120000,
+      "disabled": false
+    }
+  }
+}
