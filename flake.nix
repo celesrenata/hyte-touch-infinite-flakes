@@ -43,6 +43,7 @@
         touch-widgets = pkgs.callPackage ./packages/touch-widgets.nix { inherit quickshell; };
         system-monitor = pkgs.callPackage ./packages/system-monitor.nix {};
         cursor-barrier = pkgs.writeShellScriptBin "cursor-barrier" (builtins.readFile ./scripts/cursor-barrier.sh);
+        hyte-touch-interface = pkgs.callPackage ./packages/hyte-touch-interface.nix { inherit quickshell; };
       };
     };
 }
