@@ -47,7 +47,7 @@ in
     # Required packages
     environment.systemPackages = with pkgs; [
       gamescope
-      chromium
+      alacritty
       quickshell
     ];
 
@@ -73,8 +73,8 @@ in
       };
       
       script = ''
-        # Start gamescope in headless mode first to test
-        exec ${pkgs.gamescope}/bin/gamescope --headless -- ${pkgs.quickshell}/bin/quickshell
+        # Start gamescope in headless mode with simple terminal
+        exec ${pkgs.gamescope}/bin/gamescope --headless -- ${pkgs.alacritty}/bin/alacritty
       '';
     };
 
