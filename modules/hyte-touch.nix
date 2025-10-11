@@ -24,8 +24,8 @@ in
   };
 
   config = mkIf config.services.hyte-touch.enable {
-    # Disable DP-3 at kernel level (ChatGPT's Option 1 - bulletproof)
-    boot.kernelParams = [ "video=card1-DP-3:d" ];
+    # Disable DP-3 at kernel level (working solution)
+    boot.kernelParams = [ "video=DP-3:d" ];
 
     users.users.touchdisplay = {
       isSystemUser = true;
