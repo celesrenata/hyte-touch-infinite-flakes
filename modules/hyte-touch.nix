@@ -16,6 +16,11 @@ let
     done
     exit 1
   '';
+
+  # Detect GPU type
+  hasNvidia = config.hardware.nvidia.modesetting.enable or false || 
+              (builtins.any (driver: driver == "nvidia") config.services.xserver.videoDrivers);
+  hasAMD = builtins.any (driver: builtins.elem driver ["amdgpu" "radeon"]) config.services.xserver.videoDrivers;
 in
 
 {
@@ -40,14 +45,14 @@ in
       SUBSYSTEM=="drm", KERNEL=="card1-DP-3", OWNER="root", GROUP="root", MODE="0000", RUN+="${pkgs.coreutils}/bin/touch /tmp/udev_dp3_blocked"
     '';
 
-    # Create touchdisplay user
+    # Create touchdisplay user with GPU access
     users.users.touchdisplay = {
       isSystemUser = true;
       group = "touchdisplay";
       home = "/var/lib/touchdisplay";
       createHome = true;
       shell = pkgs.shadow;
-      extraGroups = [ "video" "input" ];
+      extraGroups = [ "video" "input" "render" ];
     };
     users.groups.touchdisplay = {};
 
@@ -96,22 +101,6 @@ in
     systemd.tmpfiles.rules = [
       "d /run/user/989 0700 touchdisplay touchdisplay -"
     ];
-
-    # Enable NVIDIA acceleration for gamescope
-    hardware.nvidia = {
-      modesetting.enable = true;
-      powerManagement.enable = false;
-      powerManagement.finegrained = false;
-      open = false;
-      nvidiaSettings = true;
-    };
-
-    # Ensure proper OpenGL/Vulkan support
-    hardware.opengl = {
-      enable = true;
-      driSupport = true;
-      driSupport32Bit = true;
-    };
     
     # Touch input support
     services.libinput = {
