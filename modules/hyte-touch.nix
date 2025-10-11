@@ -64,7 +64,7 @@ in
 
     # Required packages
     environment.systemPackages = with pkgs; [
-      gamescope
+      weston
       alacritty
       quickshell
     ];
@@ -92,8 +92,8 @@ in
       };
       
       script = ''
-        # Start gamescope targeting DP-3 directly - claim it before GDM
-        exec ${pkgs.gamescope}/bin/gamescope -O DP-3 -- ${pkgs.alacritty}/bin/alacritty
+        # Start weston targeting DP-3 directly - claim it before GDM
+        exec ${pkgs.weston}/bin/weston --output-name=DP-3
       '';
     };
 
