@@ -38,6 +38,12 @@ in
     };
     users.groups.touchdisplay = {};
 
+    # PAM configuration for touchdisplay user
+    security.pam.services.touchdisplay = {
+      allowNullPassword = true;
+      startSession = true;
+    };
+
     # Required packages
     environment.systemPackages = with pkgs; [
       gamescope
@@ -60,6 +66,7 @@ in
         Type = "simple";
         User = "touchdisplay";
         Group = "touchdisplay";
+        PAMName = "touchdisplay";
         Restart = "always";
         RestartSec = "5s";
       };
