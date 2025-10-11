@@ -92,8 +92,8 @@ in
       };
       
       script = ''
-        # Start weston targeting DP-3 directly - claim it before GDM
-        exec ${pkgs.weston}/bin/weston --output-name=DP-3
+        # Start weston with DRM backend targeting DP-3 directly
+        exec ${pkgs.weston}/bin/weston --backend=drm --drm-device=/dev/dri/card1 --output-name=DP-3
       '';
     };
 
