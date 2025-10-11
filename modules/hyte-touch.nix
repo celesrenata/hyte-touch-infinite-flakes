@@ -40,9 +40,9 @@ in
       };
     };
 
-    # Udev rule to block DP-3 access completely
+    # Udev rule to grant touchdisplay user access to card1
     services.udev.extraRules = ''
-      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", OWNER="root", GROUP="root", MODE="0000", RUN+="${pkgs.coreutils}/bin/touch /tmp/udev_dp3_blocked"
+      SUBSYSTEM=="drm", KERNEL=="card1", RUN+="${pkgs.acl}/bin/setfacl -m u:touchdisplay:rw /dev/dri/card1"
     '';
 
     # Create touchdisplay user with GPU access
