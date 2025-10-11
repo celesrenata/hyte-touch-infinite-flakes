@@ -92,7 +92,7 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = "${pkgs.docker}/bin/docker run -d --name hyte-touch --restart unless-stopped --gpus all --device /dev/dri/card1:/dev/dri/card1 --device /dev/dri/renderD128:/dev/dri/renderD128 --privileged -v ${./weston.ini}:/etc/weston/weston.ini:ro hyte-weston";
+        ExecStart = "${pkgs.docker}/bin/docker run -d --name hyte-touch --restart unless-stopped --gpus all --device /dev/dri/card1:/dev/dri/card1 --device /dev/dri/renderD128:/dev/dri/renderD128 --privileged hyte-weston";
         ExecStop = "${pkgs.docker}/bin/docker stop hyte-touch";
         ExecStopPost = "${pkgs.docker}/bin/docker rm hyte-touch";
       };
