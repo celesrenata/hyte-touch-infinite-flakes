@@ -1,4 +1,4 @@
-FROM nvidia/cuda:13.0-devel-ubuntu24.04
+FROM nvidia/cuda:13.0.1-devel-ubuntu24.04
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
