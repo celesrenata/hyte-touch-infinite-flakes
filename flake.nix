@@ -21,6 +21,7 @@
       
       nixosConfigurations.hyte-system = nixpkgs.lib.nixosSystem {
         inherit system;
+        specialArgs = { inherit quickshell; };
         modules = [
           ./configuration.nix
           self.nixosModules.hyte-touch
@@ -30,9 +31,9 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.touchdisplay = import ./home/touchdisplay.nix;
+            home-manager.extraSpecialArgs = { inherit quickshell; };
           }
         ];
-        specialArgs = { inherit quickshell; };
       };
 
       packages.${system} = {

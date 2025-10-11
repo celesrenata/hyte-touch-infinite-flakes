@@ -7,9 +7,7 @@
 
   home.packages = with pkgs; [
     quickshell.packages.${pkgs.system}.default
-    libsensors
     lm_sensors
-    nvidia-system-monitor-qt
     pulseaudio
   ];
 

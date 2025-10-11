@@ -1,125 +1,112 @@
-{ config, lib, pkgs, quickshell, ... }:
+{ config, lib, pkgs, ... }:
 
 with lib;
 
 let
   hyteDetectScript = pkgs.writeShellScript "detect-hyte-display" ''
-    # Dynamic Hyte touch display detection
-    detect_hyte_display() {
-        for card in /sys/class/drm/card*-DP-*; do
-            if [[ -f "$card/status" && "$(cat "$card/status")" == "connected" ]]; then
-                if [[ -f "$card/modes" ]]; then
-                    if grep -q "2560x682\|3840x1100" "$card/modes"; then
-                        basename "$card" | sed 's/card[0-9]*-//'
-                        return 0
-                    fi
-                fi
-            fi
-        done
-        return 1
-    }
-    
-    detect_hyte_display
+    for card in /sys/class/drm/card*-DP-*; do
+      if [[ -f "$card/status" && "$(cat "$card/status")" == "connected" ]]; then
+        if [[ -f "$card/modes" ]]; then
+          if grep -q "2560x682\|3840x1100" "$card/modes"; then
+            basename "$card" | sed 's/card[0-9]*-//'
+            exit 0
+          fi
+        fi
+      fi
+    done
+    exit 1
   '';
 in
+
 {
   options.services.hyte-touch = {
-    enable = mkEnableOption "Hyte Y70 Touch-Infinite Display";
+    enable = mkEnableOption "Hyte Y70 Touch-Infinite Display" // { default = true; };
   };
 
   config = mkIf config.services.hyte-touch.enable {
+    # Disable DP-3 at kernel level (ChatGPT's Option 1 - bulletproof)
+    boot.kernelParams = [ "video=card1-DP-3:d" ];
+
     users.users.touchdisplay = {
       isSystemUser = true;
       group = "touchdisplay";
-      shell = pkgs.shadow;
       home = "/var/lib/touchdisplay";
       createHome = true;
+      shell = pkgs.shadow;
+      extraGroups = [ "video" "input" ];
     };
-    
-    users.groups.touchdisplay = {};
 
-    # Dynamic Hyprland exclusion service
-    systemd.services.hyprland-exclude-hyte = {
-      description = "Exclude Hyte display from Hyprland";
-      before = [ "display-manager.service" ];
-      wantedBy = [ "multi-user.target" ];
-      
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-      };
-      
-      script = ''
-        HYTE_DISPLAY=$(${hyteDetectScript})
-        if [ -n "$HYTE_DISPLAY" ]; then
-          mkdir -p /etc/hypr
-          echo "monitor=$HYTE_DISPLAY,disable" > /etc/hypr/hyprland-exclude.conf
-          echo "Excluded $HYTE_DISPLAY from Hyprland"
-        fi
-      '';
-    };
+    users.groups.touchdisplay = {};
 
     # Auto-login service for touch display user
     systemd.services.touchdisplay-session = {
       description = "Touch Display Wayland Session";
-      after = [ "hyprland-exclude-hyte.service" "graphical-session.target" ];
-      wants = [ "hyprland-exclude-hyte.service" ];
+      after = [ "graphical-session.target" ];
       wantedBy = [ "multi-user.target" ];
+      
+      environment = {
+        XDG_RUNTIME_DIR = "/run/user/999";
+        WAYLAND_DISPLAY = "wayland-1";
+        WLR_BACKENDS = "drm";
+        WLR_DRM_DEVICES = "/dev/dri/card1";
+      };
       
       serviceConfig = {
         Type = "simple";
         User = "touchdisplay";
         Group = "touchdisplay";
-        WorkingDirectory = "/var/lib/touchdisplay";
-        Environment = [
-          "XDG_RUNTIME_DIR=/run/user/999"
-          "WAYLAND_DISPLAY=wayland-1"
-        ];
+        PAMName = "login";
+        TTYPath = "/dev/tty7";
+        StandardInput = "tty";
+        UnsetEnvironment = "TERM";
+        
+        # Security restrictions
+        PrivateNetwork = false;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        ReadWritePaths = [ "/var/lib/touchdisplay" "/tmp" ];
+        
         Restart = "always";
-        RestartSec = "3";
+        RestartSec = "5s";
       };
       
       script = ''
-        HYTE_DISPLAY=$(${hyteDetectScript})
+        # Re-enable DP-3 that was disabled by kernel parameter
+        echo on > /sys/class/drm/card1-DP-3/dpms 2>/dev/null || true
+        
+        export HYTE_DISPLAY=$(${hyteDetectScript})
         if [ -n "$HYTE_DISPLAY" ]; then
-          export HYTE_DISPLAY
-          exec ${pkgs.sway}/bin/sway --config /etc/sway/touchdisplay.conf
+          export WLR_DRM_CONNECTORS="$HYTE_DISPLAY"
+          
+          # Start Hyprland for touch display
+          exec ${pkgs.hyprland}/bin/Hyprland -c ${./hyte-hyprland.conf}
         else
-          echo "Hyte display not detected, exiting"
+          echo "Hyte display not detected, exiting..."
           exit 1
         fi
       '';
     };
 
-    # Dynamic Sway configuration
-    environment.etc."sway/touchdisplay.conf".text = ''
-      exec_always {
-        HYTE_DISPLAY=$(${hyteDetectScript})
-        if [ -n "$HYTE_DISPLAY" ]; then
-          swaymsg output $HYTE_DISPLAY enable
-          # Map touch input to the Hyte display
-          for touch_device in $(swaymsg -t get_inputs | jq -r '.[] | select(.type=="touch") | .identifier'); do
-            swaymsg input $touch_device map_to_output $HYTE_DISPLAY
-          done
-        fi
-      }
-      
-      exec ${pkgs.callPackage ../packages/touch-widgets.nix { inherit quickshell; }}/bin/hyte-touch-interface
-      
-      # Disable all keybindings for security
-      unbindall
-    '';
-
-    # System runtime directory for touchdisplay user
+    # Runtime directory for touchdisplay user
     systemd.tmpfiles.rules = [
-      "d /run/user/999 0755 touchdisplay touchdisplay -"
-      "d /var/lib/touchdisplay/backgrounds 0755 touchdisplay touchdisplay -"
+      "d /run/user/999 0700 touchdisplay touchdisplay -"
     ];
 
-    # Add touch-widgets package to system packages
+    # Required packages
     environment.systemPackages = with pkgs; [
-      (callPackage ../packages/touch-widgets.nix { inherit quickshell; })
-      jq  # For touch input detection
+      hyprland
+      quickshell
+      gamescope
     ];
+
+    # Enable required services
+    services.udev.enable = true;
+    hardware.opengl.enable = true;
+    
+    # Touch input support
+    services.libinput = {
+      enable = true;
+      touchpad.naturalScrolling = true;
+    };
   };
 }
