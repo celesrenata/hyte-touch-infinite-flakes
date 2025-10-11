@@ -27,6 +27,17 @@ in
     # Disable DP-3 at kernel level (working solution)
     boot.kernelParams = [ "video=DP-3:d" ];
 
+    # Create touchdisplay user
+    users.users.touchdisplay = {
+      isSystemUser = true;
+      group = "touchdisplay";
+      home = "/var/lib/touchdisplay";
+      createHome = true;
+      shell = pkgs.shadow;
+      extraGroups = [ "video" "input" ];
+    };
+    users.groups.touchdisplay = {};
+
     # Required packages
     environment.systemPackages = with pkgs; [
       gamescope
@@ -34,22 +45,38 @@ in
       quickshell
     ];
 
-    # Gamescope kiosk service for DP-3 (runs as main user)
-    systemd.user.services."dp3-kiosk" = {
-      description = "DP-3 dashboard (gamescope fullscreen)";
-      wantedBy = [ "graphical-session.target" ];
-      after = [ "graphical-session.target" ];
+    # Auto-starting system service for DP-3 (runs as touchdisplay user)
+    systemd.services.hyte-touch-display = {
+      description = "Hyte Touch Display Service";
+      after = [ "graphical.target" ];
+      wantedBy = [ "multi-user.target" ];
+      
+      environment = {
+        XDG_RUNTIME_DIR = "/run/user/999";
+        DISPLAY = ":0";
+      };
+      
       serviceConfig = {
         Type = "simple";
-        ExecStart = ''
-          ${pkgs.gamescope}/bin/gamescope -f -O DP-3 -- \
-            ${pkgs.chromium}/bin/chromium \
-              --kiosk --noerrdialogs --disable-translate --overscroll-history-navigation=0 \
-              --incognito --start-fullscreen --app=http://localhost:3000/dashboard
-        '';
+        User = "touchdisplay";
+        Group = "touchdisplay";
         Restart = "always";
+        RestartSec = "5s";
       };
+      
+      script = ''
+        # Re-enable DP-3 that was disabled by kernel parameter
+        echo on > /sys/class/drm/card1-DP-3/dpms 2>/dev/null || true
+        
+        # Start gamescope on DP-3 with quickshell
+        exec ${pkgs.gamescope}/bin/gamescope -f -O DP-3 -- ${pkgs.quickshell}/bin/quickshell
+      '';
     };
+
+    # Runtime directory for touchdisplay user
+    systemd.tmpfiles.rules = [
+      "d /run/user/999 0700 touchdisplay touchdisplay -"
+    ];
 
     # Enable required services
     services.udev.enable = true;
