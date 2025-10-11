@@ -13,8 +13,5 @@ ENV USER=weston
 # Create weston user
 RUN adduser -D -s /bin/sh weston
 
-# Copy weston configuration
-COPY weston.ini /etc/weston/weston.ini
-
 # Start weston targeting DP-3
 CMD ["weston", "--backend=drm", "--drm-device=/dev/dri/card1", "--output-name=DP-3"]
