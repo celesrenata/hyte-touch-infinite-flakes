@@ -25,7 +25,7 @@ with lib;
     # Enable seatd for seat management
     services.seatd = {
       enable = true;
-      user = "root";
+      user = "celes";
       group = "seat";
     };
 
@@ -34,13 +34,6 @@ with lib;
 
     # Add user to groups for DRM and seat access
     users.users.celes.extraGroups = [ "docker" "input" "video" "seat" ];
-    
-    # Enable seatd for multi-session DRM access
-    services.seatd = {
-      enable = true;
-      user = "celes";
-      group = "seat";
-    };
     
     # Touch input support
     services.libinput = {
