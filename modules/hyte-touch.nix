@@ -27,6 +27,24 @@ in
     # Don't disable DP-3 at kernel level - let gamescope access it
     # boot.kernelParams = [ "video=DP-3:d" ];
 
+    # Configure GDM to ignore DP-3
+    services.xserver.displayManager.gdm.extraConfig = ''
+      [daemon]
+      WaylandEnable=true
+      
+      [security]
+      
+      [xdmcp]
+      
+      [chooser]
+      
+      [debug]
+      
+      [greeter]
+      IncludeAll=false
+      Exclude=DP-3
+    '';
+
     # Create touchdisplay user
     users.users.touchdisplay = {
       isSystemUser = true;
