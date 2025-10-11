@@ -80,9 +80,15 @@ in
       '';
     };
 
-    # Runtime directory for touchdisplay user
+    # Re-enable DP-3 via udev rule
+    services.udev.extraRules = ''
+      # Re-enable DP-3 for touchdisplay user access
+      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ACTION=="add", RUN+="${pkgs.bash}/bin/bash -c 'echo on > /sys/class/drm/card1-DP-3/dpms'"
+    '';
+
+    # Runtime directory for touchdisplay user  
     systemd.tmpfiles.rules = [
-      "d /run/user/999 0700 touchdisplay touchdisplay -"
+      "d /run/user/989 0700 touchdisplay touchdisplay -"
     ];
 
     # Enable required services
