@@ -73,10 +73,8 @@ in
       };
       
       script = ''
-        # Test with simple command first
-        echo "Service started successfully"
-        sleep 10
-        echo "Service ending"
+        # Try gamescope targeting DP-3 directly
+        exec ${pkgs.gamescope}/bin/gamescope -O DP-3 -- ${pkgs.alacritty}/bin/alacritty
       '';
     };
 
