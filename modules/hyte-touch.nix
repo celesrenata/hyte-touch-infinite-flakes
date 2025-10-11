@@ -37,10 +37,9 @@ in
 
     # Udev rules for DP-3 access control
     services.udev.extraRules = ''
-      # Restrict DP-3 access to touchdisplay user only
+      # Block DP-3 access for everyone except touchdisplay user
       SUBSYSTEM=="drm", KERNEL=="card1-DP-3", OWNER="touchdisplay", GROUP="touchdisplay", MODE="0600"
-      # Re-enable DP-3 for touchdisplay user access
-      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ACTION=="add", RUN+="${pkgs.bash}/bin/bash -c 'echo on > /sys/class/drm/card1-DP-3/dpms'"
+      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", TAG+="uaccess", TAG-="uaccess"
     '';
 
     # Create touchdisplay user
