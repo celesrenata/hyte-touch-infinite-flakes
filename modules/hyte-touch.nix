@@ -67,13 +67,14 @@ in
     # Auto-starting system service for DP-3 (runs as touchdisplay user)
     systemd.services.hyte-touch-display = {
       description = "Hyte Touch Display Service";
-      after = [ "multi-user.target" "graphical-session.target" ];
-      wantedBy = [ "graphical.target" ];
+      before = [ "display-manager.service" "gdm.service" "graphical.target" ];
+      after = [ "systemd-logind.service" "dbus.service" ];
+      wantedBy = [ "multi-user.target" ];
+      wants = [ "systemd-logind.service" ];
       
       environment = {
         XDG_RUNTIME_DIR = "/run/user/989";
         WLR_DRM_DEVICES = "/dev/dri/card1";
-        WLR_DRM_CONNECTORS = "DP-3";
       };
       
       serviceConfig = {
@@ -86,7 +87,7 @@ in
       };
       
       script = ''
-        # Try gamescope targeting DP-3 directly
+        # Start gamescope targeting DP-3 directly - claim it before GDM
         exec ${pkgs.gamescope}/bin/gamescope -O DP-3 -- ${pkgs.alacritty}/bin/alacritty
       '';
     };
