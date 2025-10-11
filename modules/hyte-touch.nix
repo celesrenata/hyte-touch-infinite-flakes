@@ -92,8 +92,8 @@ in
       };
       
       script = ''
-        # Start weston with DRM backend on VT7 targeting DP-3
-        exec ${pkgs.weston}/bin/weston --backend=drm --drm-device=/dev/dri/card1 --tty=7 --output-name=DP-3
+        # Try using render node instead of card device
+        exec ${pkgs.weston}/bin/weston --backend=drm --drm-device=/dev/dri/renderD128 --tty=7 --output-name=DP-3
       '';
     };
 
