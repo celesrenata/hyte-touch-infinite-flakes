@@ -35,6 +35,11 @@ in
       };
     };
 
+    # Udev rule to restrict DP-3 access to touchdisplay user only
+    services.udev.extraRules = ''
+      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", OWNER="touchdisplay", GROUP="touchdisplay", MODE="0600"
+    '';
+
     # Create touchdisplay user
     users.users.touchdisplay = {
       isSystemUser = true;
