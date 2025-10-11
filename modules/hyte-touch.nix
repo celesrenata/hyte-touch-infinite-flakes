@@ -48,8 +48,8 @@ in
     # Auto-starting system service for DP-3 (runs as touchdisplay user)
     systemd.services.hyte-touch-display = {
       description = "Hyte Touch Display Service";
-      after = [ "graphical.target" ];
-      wantedBy = [ "multi-user.target" ];
+      after = [ "multi-user.target" "graphical-session.target" ];
+      wantedBy = [ "graphical.target" ];
       
       environment = {
         XDG_RUNTIME_DIR = "/run/user/999";
