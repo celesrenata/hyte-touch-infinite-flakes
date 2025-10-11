@@ -97,9 +97,21 @@ in
       "d /run/user/989 0700 touchdisplay touchdisplay -"
     ];
 
-    # Enable required services
-    services.udev.enable = true;
-    hardware.opengl.enable = true;
+    # Enable NVIDIA acceleration for gamescope
+    hardware.nvidia = {
+      modesetting.enable = true;
+      powerManagement.enable = false;
+      powerManagement.finegrained = false;
+      open = false;
+      nvidiaSettings = true;
+    };
+
+    # Ensure proper OpenGL/Vulkan support
+    hardware.opengl = {
+      enable = true;
+      driSupport = true;
+      driSupport32Bit = true;
+    };
     
     # Touch input support
     services.libinput = {
