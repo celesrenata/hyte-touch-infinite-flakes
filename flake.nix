@@ -20,9 +20,6 @@
       # Overlay to filter DP-3 from quickshell
       overlays.quickshell-dp3-filter = import ./overlays/quickshell-dp3-filter.nix;
       
-      # Cursor barrier script package
-      packages.${system}.cursor-barrier = pkgs.writeShellScriptBin "cursor-barrier" (builtins.readFile ./scripts/cursor-barrier.sh);
-      
       nixosModules.hyte-touch = import ./modules/hyte-touch.nix;
       
       nixosConfigurations.hyte-system = nixpkgs.lib.nixosSystem {
@@ -45,6 +42,7 @@
       packages.${system} = {
         touch-widgets = pkgs.callPackage ./packages/touch-widgets.nix { inherit quickshell; };
         system-monitor = pkgs.callPackage ./packages/system-monitor.nix {};
+        cursor-barrier = pkgs.writeShellScriptBin "cursor-barrier" (builtins.readFile ./scripts/cursor-barrier.sh);
       };
     };
 }
