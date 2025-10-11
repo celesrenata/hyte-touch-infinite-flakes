@@ -35,9 +35,9 @@ in
       };
     };
 
-    # Udev rule to completely block DP-3 access except for touchdisplay
+    # Udev rule to hide DP-3 from all users except touchdisplay
     services.udev.extraRules = ''
-      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", OWNER="touchdisplay", GROUP="touchdisplay", MODE="0000"
+      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ENV{SYSTEMD_WANTS}="", ENV{SYSTEMD_USER_WANTS}="", ENV{ID_SEAT}="", TAG-="seat", TAG-="uaccess", OWNER="touchdisplay", GROUP="touchdisplay", MODE="0600"
     '';
 
     # Create touchdisplay user
