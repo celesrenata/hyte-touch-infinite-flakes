@@ -73,8 +73,8 @@ in
       };
       
       script = ''
-        # Start gamescope on DP-3 with quickshell
-        exec ${pkgs.gamescope}/bin/gamescope -f -O DP-3 -- ${pkgs.quickshell}/bin/quickshell
+        # Start gamescope in headless mode first to test
+        exec ${pkgs.gamescope}/bin/gamescope --headless -- ${pkgs.quickshell}/bin/quickshell
       '';
     };
 
