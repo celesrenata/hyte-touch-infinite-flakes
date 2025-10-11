@@ -42,22 +42,19 @@ with lib;
       touchpad.naturalScrolling = true;
     };
 
-    # Systemd service to start weston on DP-3 with seatd
-    systemd.services.hyte-touch-display = {
+    # User service to start weston on DP-3 with seatd
+    systemd.user.services.hyte-touch-display = {
       description = "Hyte Touch Display Service";
       after = [ "seatd.service" ];
-      requires = [ "seatd.service" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = [ "default.target" ];
       
       environment = {
-        XDG_RUNTIME_DIR = "/run/user/989";
+        XDG_RUNTIME_DIR = "/run/user/%i";
         LIBSEAT_BACKEND = "seatd";
       };
       
       serviceConfig = {
         Type = "simple";
-        User = "touchdisplay";
-        Group = "seat";
         Restart = "always";
         RestartSec = "5s";
       };
