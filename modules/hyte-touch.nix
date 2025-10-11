@@ -27,77 +27,29 @@ in
     # Disable DP-3 at kernel level (working solution)
     boot.kernelParams = [ "video=DP-3:d" ];
 
-    users.users.touchdisplay = {
-      isSystemUser = true;
-      group = "touchdisplay";
-      home = "/var/lib/touchdisplay";
-      createHome = true;
-      shell = pkgs.shadow;
-      extraGroups = [ "video" "input" ];
-    };
-
-    users.groups.touchdisplay = {};
-
-    # Auto-login service for touch display user
-    systemd.services.touchdisplay-session = {
-      description = "Touch Display Wayland Session";
-      after = [ "graphical-session.target" ];
-      wantedBy = [ "multi-user.target" ];
-      
-      environment = {
-        XDG_RUNTIME_DIR = "/run/user/999";
-        WAYLAND_DISPLAY = "wayland-1";
-        WLR_BACKENDS = "drm";
-        WLR_DRM_DEVICES = "/dev/dri/card1";
-      };
-      
-      serviceConfig = {
-        Type = "simple";
-        User = "touchdisplay";
-        Group = "touchdisplay";
-        PAMName = "login";
-        TTYPath = "/dev/tty7";
-        StandardInput = "tty";
-        UnsetEnvironment = "TERM";
-        
-        # Security restrictions
-        PrivateNetwork = false;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        ReadWritePaths = [ "/var/lib/touchdisplay" "/tmp" ];
-        
-        Restart = "always";
-        RestartSec = "5s";
-      };
-      
-      script = ''
-        # Re-enable DP-3 that was disabled by kernel parameter
-        echo on > /sys/class/drm/card1-DP-3/dpms 2>/dev/null || true
-        
-        export HYTE_DISPLAY=$(${hyteDetectScript})
-        if [ -n "$HYTE_DISPLAY" ]; then
-          export WLR_DRM_CONNECTORS="$HYTE_DISPLAY"
-          
-          # Start Hyprland for touch display
-          exec ${pkgs.hyprland}/bin/Hyprland -c ${./hyte-hyprland.conf}
-        else
-          echo "Hyte display not detected, exiting..."
-          exit 1
-        fi
-      '';
-    };
-
-    # Runtime directory for touchdisplay user
-    systemd.tmpfiles.rules = [
-      "d /run/user/999 0700 touchdisplay touchdisplay -"
-    ];
-
     # Required packages
     environment.systemPackages = with pkgs; [
-      hyprland
-      quickshell
       gamescope
+      chromium
+      quickshell
     ];
+
+    # Gamescope kiosk service for DP-3 (runs as main user)
+    systemd.user.services."dp3-kiosk" = {
+      description = "DP-3 dashboard (gamescope fullscreen)";
+      wantedBy = [ "graphical-session.target" ];
+      after = [ "graphical-session.target" ];
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = ''
+          ${pkgs.gamescope}/bin/gamescope -f -O DP-3 -- \
+            ${pkgs.chromium}/bin/chromium \
+              --kiosk --noerrdialogs --disable-translate --overscroll-history-navigation=0 \
+              --incognito --start-fullscreen --app=http://localhost:3000/dashboard
+        '';
+        Restart = "always";
+      };
+    };
 
     # Enable required services
     services.udev.enable = true;
