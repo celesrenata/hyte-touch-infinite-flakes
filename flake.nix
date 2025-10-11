@@ -17,6 +17,12 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
+      # Overlay to filter DP-3 from quickshell
+      overlays.quickshell-dp3-filter = import ./overlays/quickshell-dp3-filter.nix;
+      
+      # Cursor barrier script package
+      packages.${system}.cursor-barrier = pkgs.writeShellScriptBin "cursor-barrier" (builtins.readFile ./scripts/cursor-barrier.sh);
+      
       nixosModules.hyte-touch = import ./modules/hyte-touch.nix;
       
       nixosConfigurations.hyte-system = nixpkgs.lib.nixosSystem {
