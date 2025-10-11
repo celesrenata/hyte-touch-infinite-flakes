@@ -35,9 +35,12 @@ in
       };
     };
 
-    # Udev rule to restrict DP-3 access to touchdisplay user only
+    # Udev rules for DP-3 access control
     services.udev.extraRules = ''
+      # Restrict DP-3 access to touchdisplay user only
       SUBSYSTEM=="drm", KERNEL=="card1-DP-3", OWNER="touchdisplay", GROUP="touchdisplay", MODE="0600"
+      # Re-enable DP-3 for touchdisplay user access
+      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ACTION=="add", RUN+="${pkgs.bash}/bin/bash -c 'echo on > /sys/class/drm/card1-DP-3/dpms'"
     '';
 
     # Create touchdisplay user
@@ -90,12 +93,6 @@ in
         exec ${pkgs.gamescope}/bin/gamescope -O DP-3 -- ${pkgs.alacritty}/bin/alacritty
       '';
     };
-
-    # Re-enable DP-3 via udev rule
-    services.udev.extraRules = ''
-      # Re-enable DP-3 for touchdisplay user access
-      SUBSYSTEM=="drm", KERNEL=="card1-DP-3", ACTION=="add", RUN+="${pkgs.bash}/bin/bash -c 'echo on > /sys/class/drm/card1-DP-3/dpms'"
-    '';
 
     # Runtime directory for touchdisplay user  
     systemd.tmpfiles.rules = [
