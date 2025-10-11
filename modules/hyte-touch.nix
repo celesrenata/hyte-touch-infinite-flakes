@@ -47,5 +47,37 @@ with lib;
       enable = true;
       touchpad.naturalScrolling = true;
     };
+
+    # Required packages
+    environment.systemPackages = with pkgs; [
+      weston
+      alacritty
+      quickshell
+    ];
+
+    # Systemd service to start weston on DP-3 with seatd
+    systemd.services.hyte-touch-display = {
+      description = "Hyte Touch Display Service";
+      after = [ "seatd.service" ];
+      requires = [ "seatd.service" ];
+      wantedBy = [ "multi-user.target" ];
+      
+      environment = {
+        XDG_RUNTIME_DIR = "/run/user/989";
+        LIBSEAT_BACKEND = "seatd";
+      };
+      
+      serviceConfig = {
+        Type = "simple";
+        User = "touchdisplay";
+        Group = "seat";
+        Restart = "always";
+        RestartSec = "5s";
+      };
+      
+      script = ''
+        exec ${pkgs.weston}/bin/weston --backend=drm --drm-device=/dev/dri/card1 --output-name=DP-3
+      '';
+    };
   };
 }
