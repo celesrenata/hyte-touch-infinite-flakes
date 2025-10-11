@@ -73,8 +73,10 @@ in
       };
       
       script = ''
-        # Start gamescope in headless mode with simple terminal
-        exec ${pkgs.gamescope}/bin/gamescope --headless -- ${pkgs.alacritty}/bin/alacritty
+        # Test with simple command first
+        echo "Service started successfully"
+        sleep 10
+        echo "Service ending"
       '';
     };
 
