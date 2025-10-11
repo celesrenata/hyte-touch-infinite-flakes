@@ -18,8 +18,9 @@ with lib;
 
     # Required packages
     environment.systemPackages = with pkgs; [
-      docker
-      docker-compose
+      weston
+      alacritty
+      quickshell
     ];
 
     # Enable seatd for seat management
@@ -40,13 +41,6 @@ with lib;
       enable = true;
       touchpad.naturalScrolling = true;
     };
-
-    # Required packages
-    environment.systemPackages = with pkgs; [
-      weston
-      alacritty
-      quickshell
-    ];
 
     # Systemd service to start weston on DP-3 with seatd
     systemd.services.hyte-touch-display = {
