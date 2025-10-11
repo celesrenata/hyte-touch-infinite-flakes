@@ -74,37 +74,28 @@ in
 
     # Required packages
     environment.systemPackages = with pkgs; [
-      weston
-      alacritty
-      quickshell
+      docker
+      docker-compose
     ];
 
-    # Auto-starting system service for DP-3 (runs as touchdisplay user)
+    # Enable Docker
+    virtualisation.docker.enable = true;
+    virtualisation.docker.enableNvidia = true;
+
+    # Docker container service for Hyte touch display
     systemd.services.hyte-touch-display = {
-      description = "Hyte Touch Display Service";
-      before = [ "display-manager.service" "gdm.service" "graphical.target" ];
-      after = [ "systemd-logind.service" "dbus.service" ];
+      description = "Hyte Touch Display Docker Container";
+      after = [ "docker.service" ];
+      requires = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
-      wants = [ "systemd-logind.service" ];
-      
-      environment = {
-        XDG_RUNTIME_DIR = "/run/user/989";
-        WLR_DRM_DEVICES = "/dev/dri/card1";
-      };
       
       serviceConfig = {
-        Type = "simple";
-        User = "touchdisplay";
-        Group = "touchdisplay";
-        PAMName = "touchdisplay";
-        Restart = "always";
-        RestartSec = "5s";
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.docker}/bin/docker run -d --name hyte-touch --restart unless-stopped --gpus all --device /dev/dri/card1:/dev/dri/card1 --device /dev/dri/renderD128:/dev/dri/renderD128 --privileged -v ${./weston.ini}:/etc/weston/weston.ini:ro hyte-weston";
+        ExecStop = "${pkgs.docker}/bin/docker stop hyte-touch";
+        ExecStopPost = "${pkgs.docker}/bin/docker rm hyte-touch";
       };
-      
-      script = ''
-        # Start weston with DRM backend on VT7 targeting DP-3 (Hyprland ignores it)
-        exec ${pkgs.weston}/bin/weston --backend=drm --drm-device=/dev/dri/card1 --tty=7 --output-name=DP-3
-      '';
     };
 
     # Runtime directory for touchdisplay user  
