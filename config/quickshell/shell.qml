@@ -8,8 +8,15 @@ ShellRoot {
     property int currentPage: 0
     property int totalPages: 4
     
+    Component.onCompleted: {
+        console.log("QuickShell started, screens:", Quickshell.screens.length)
+        for (var i = 0; i < Quickshell.screens.length; i++) {
+            console.log("Screen", i, ":", Quickshell.screens[i].name, Quickshell.screens[i].width, "x", Quickshell.screens[i].height)
+        }
+    }
+    
     Variants {
-        model: Quickshell.screens
+        model: Quickshell.screens.filter(screen => screen.name === "DP-3")
         
         PanelWindow {
             property var modelData
@@ -22,21 +29,7 @@ ShellRoot {
                     Rectangle {
                         anchors.fill: parent
                         color: "#1a1a1a"
-                        
-                        Text {
-                            anchors.centerIn: parent
-                            text: "HYTE TOUCH INTERFACE\nScreen: " + (parent.parent.screen ? parent.parent.screen.name : "Unknown") + "\nSwipe to navigate"
-                            color: "#00ff88"
-                            font.pixelSize: 32
-                            horizontalAlignment: Text.AlignHCenter
-                        }
                     }
-                    
-                    // Background layer
-                    // BackgroundWidget {
-                    //     anchors.fill: parent
-                    //     z: -1
-                    // }
                     
                     // Main swipe container
                     SwipeView {
@@ -46,22 +39,80 @@ ShellRoot {
                         
                         onCurrentIndexChanged: root.currentPage = currentIndex
                         
-                        // Page 1: Overview - Temperature + Usage
+                        // Page 1: Overview - Temperature + Usage + Network
                         Item {
                             Row {
-                                anchors.fill: parent
-                                anchors.margins: 10
+                                anchors.top: parent.top
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.topMargin: 0
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                height: parent.height * 0.15
                                 spacing: 10
                                 
-                                TemperatureWidget {
+                                Column {
                                     width: parent.width * 0.5
-                                    height: parent.height
+                                    spacing: 5
+                                    
+                                    TemperatureWidget {
+                                        width: parent.width
+                                        height: parent.parent.height * 0.65
+                                    }
+                                    
+                                    PowerWidget {
+                                        width: parent.width
+                                        height: parent.parent.height * 0.35
+                                    }
                                 }
                                 
                                 SystemUsageWidget {
                                     width: parent.width * 0.5
                                     height: parent.height
                                 }
+                            }
+                            
+                            NetworkWidget {
+                                anchors.top: parent.top
+                                anchors.topMargin: parent.height * 0.15 + 5
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                height: parent.height * 0.125
+                            }
+                            
+                            GrafanaWidget {
+                                id: grafanaWidget
+                                anchors.top: parent.top
+                                anchors.topMargin: parent.height * 0.275 + 5
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                height: parent.height * 0.13
+                            }
+                            
+                            NasWidget {
+                                id: nasWidget
+                                anchors.top: grafanaWidget.bottom
+                                anchors.topMargin: 5
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                height: parent.height * 0.08
+                            }
+                            
+                            RouterWidget {
+                                anchors.top: nasWidget.bottom
+                                anchors.topMargin: 5
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                anchors.bottomMargin: 10
                             }
                         }
                         
@@ -86,22 +137,11 @@ ShellRoot {
                             }
                         }
                         
-                        // Page 4: Music Visualizer + Settings
+                        // Page 4: Music Visualizer
                         Item {
-                            Column {
+                            MusicVisualizerWidget {
                                 anchors.fill: parent
                                 anchors.margins: 10
-                                spacing: 10
-                                
-                                MusicVisualizerWidget {
-                                    width: parent.width
-                                    height: parent.height * 0.6
-                                }
-                                
-                                // SettingsWidget {
-                                //     width: parent.width
-                                //     height: parent.height * 0.4
-                                // }
                             }
                         }
                     }
@@ -134,14 +174,18 @@ ShellRoot {
                     // Touch gesture handling
                     MouseArea {
                         anchors.fill: parent
-                        z: -10
+                        z: 1000
+                        propagateComposedEvents: true
                         
                         property real startX: 0
                         property real threshold: 100
                         
-                        onPressed: startX = mouse.x
+                        onPressed: function(mouse) {
+                            startX = mouse.x
+                            mouse.accepted = false
+                        }
                         
-                        onReleased: {
+                        onReleased: function(mouse) {
                             var deltaX = mouse.x - startX
                             
                             if (Math.abs(deltaX) > threshold) {
@@ -152,6 +196,9 @@ ShellRoot {
                                     // Swipe left - next page
                                     swipeView.currentIndex = root.currentPage + 1
                                 }
+                                mouse.accepted = true
+                            } else {
+                                mouse.accepted = false
                             }
                         }
                     }

@@ -1,9 +1,14 @@
 singleton SystemMonitor 1.0 SystemMonitor.qml
 MusicVisualizerWidget 1.0 widgets/MusicVisualizerWidget.qml
 BackgroundWidget 1.0 widgets/BackgroundWidget.qml
+NetworkWidget 1.0 widgets/NetworkWidget.qml
+GrafanaWidget 1.0 widgets/GrafanaWidget.qml
+PowerWidget 1.0 widgets/PowerWidget.qml
 SettingsWidget 1.0 widgets/SettingsWidget.qml
 SystemUsageDetailWidget 1.0 widgets/SystemUsageDetailWidget.qml
 SystemUsageWidget 1.0 widgets/SystemUsageWidget.qml
 TemperatureDetailWidget 1.0 widgets/TemperatureDetailWidget.qml
 TemperatureWidget 1.0 widgets/TemperatureWidget.qml
 UsageBar 1.0 widgets/UsageBar.qml
+NasWidget 1.0 widgets/NasWidget.qml
+RouterWidget 1.0 widgets/RouterWidget.qml
