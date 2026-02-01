@@ -1,150 +1,92 @@
-import QtQuick 2.15
-import QtCharts 2.15
-import ".." 1.0
+import QtQuick
 
 Rectangle {
     id: tempWidget
     color: "#1e1e1e"
     radius: 8
     
-    property var tempHistory: {
-        "cpu": [],
-        "gpu": [],
-        "ambient": []
-    }
-    property int maxDataPoints: 60
-    property real cpuTemp: 0
-    property real gpuTemp: 0
-    property real ambientTemp: 0
+    property real cpuTemp: 65.0
+    property real gpuTemp: 72.0
+    property real ambientTemp: 28.0
     
     Timer {
-        interval: 1000
+        interval: 2000
         running: true
         repeat: true
-        onTriggered: updateTemperatures()
+        onTriggered: {
+            // Simulate temperature changes for now
+            cpuTemp = 60 + Math.random() * 20
+            gpuTemp = 65 + Math.random() * 25
+            ambientTemp = 25 + Math.random() * 10
+        }
     }
     
-    function updateTemperatures() {
-        SystemMonitor.exec("sensors -A | grep -E 'Core 0|GPU|Ambient' | grep -oE '[0-9]+\\.[0-9]+°C' | head -3", function(output) {
-            var lines = output.trim().split('\n')
-            if (lines.length >= 2) {
-                cpuTemp = parseFloat(lines[0]) || 0
-                gpuTemp = parseFloat(lines[1]) || 0
-                ambientTemp = lines[2] ? parseFloat(lines[2]) : 25
-                
-                addDataPoint("cpu", cpuTemp)
-                addDataPoint("gpu", gpuTemp) 
-                addDataPoint("ambient", ambientTemp)
-                updateChart()
+    Column {
+        anchors.centerIn: parent
+        spacing: 15
+        
+        Text {
+            text: "System Temperatures"
+            color: "#00ff88"
+            font.pixelSize: 18
+            font.bold: true
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+        
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 20
+            
+            Column {
+                spacing: 5
+                Text {
+                    text: "CPU"
+                    color: "#888"
+                    font.pixelSize: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                Text {
+                    text: cpuTemp.toFixed(1) + "°C"
+                    color: cpuTemp > 80 ? "#ff4444" : cpuTemp > 60 ? "#ffaa00" : "#00ff88"
+                    font.pixelSize: 16
+                    font.bold: true
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
             }
-        })
-    }
-    
-    function addDataPoint(sensor, value) {
-        tempHistory[sensor].push(value)
-        if (tempHistory[sensor].length > maxDataPoints) {
-            tempHistory[sensor].shift()
-        }
-    }
-    
-    function updateChart() {
-        cpuSeries.clear()
-        gpuSeries.clear()
-        ambientSeries.clear()
-        
-        for (var i = 0; i < tempHistory.cpu.length; i++) {
-            cpuSeries.append(i, tempHistory.cpu[i])
-            gpuSeries.append(i, tempHistory.gpu[i] || 0)
-            ambientSeries.append(i, tempHistory.ambient[i] || 25)
-        }
-    }
-    
-    Text {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.margins: 15
-        text: "System Temperatures"
-        color: "white"
-        font.pixelSize: 16
-        font.bold: true
-    }
-    
-    ChartView {
-        id: tempChart
-        anchors.top: parent.top
-        anchors.topMargin: 40
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: legendRow.top
-        anchors.margins: 10
-        
-        backgroundColor: "transparent"
-        legend.visible: false
-        
-        ValueAxis {
-            id: xAxis
-            min: 0
-            max: maxDataPoints
-            visible: false
-        }
-        
-        ValueAxis {
-            id: yAxis
-            min: 20
-            max: 90
-            labelFormat: "%d°C"
-            color: "white"
-        }
-        
-        LineSeries {
-            id: cpuSeries
-            name: "CPU"
-            color: "#ff6b6b"
-            width: 2
-            axisX: xAxis
-            axisY: yAxis
-        }
-        
-        LineSeries {
-            id: gpuSeries
-            name: "GPU"
-            color: "#4ecdc4"
-            width: 2
-            axisX: xAxis
-            axisY: yAxis
-        }
-        
-        LineSeries {
-            id: ambientSeries
-            name: "Ambient"
-            color: "#45b7d1"
-            width: 2
-            axisX: xAxis
-            axisY: yAxis
-        }
-    }
-    
-    Row {
-        id: legendRow
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.margins: 10
-        spacing: 20
-        
-        Row {
-            spacing: 5
-            Rectangle { width: 12; height: 12; color: "#ff6b6b" }
-            Text { text: "CPU: " + cpuTemp.toFixed(1) + "°C"; color: "white"; font.pixelSize: 12 }
-        }
-        Row {
-            spacing: 5
-            Rectangle { width: 12; height: 12; color: "#4ecdc4" }
-            Text { text: "GPU: " + gpuTemp.toFixed(1) + "°C"; color: "white"; font.pixelSize: 12 }
-        }
-        Row {
-            spacing: 5
-            Rectangle { width: 12; height: 12; color: "#45b7d1" }
-            Text { text: "Ambient: " + ambientTemp.toFixed(1) + "°C"; color: "white"; font.pixelSize: 12 }
+            
+            Column {
+                spacing: 5
+                Text {
+                    text: "GPU"
+                    color: "#888"
+                    font.pixelSize: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                Text {
+                    text: gpuTemp.toFixed(1) + "°C"
+                    color: gpuTemp > 85 ? "#ff4444" : gpuTemp > 70 ? "#ffaa00" : "#00ff88"
+                    font.pixelSize: 16
+                    font.bold: true
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+            }
+            
+            Column {
+                spacing: 5
+                Text {
+                    text: "Ambient"
+                    color: "#888"
+                    font.pixelSize: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                Text {
+                    text: ambientTemp.toFixed(1) + "°C"
+                    color: "#00ff88"
+                    font.pixelSize: 16
+                    font.bold: true
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+            }
         }
     }
 }

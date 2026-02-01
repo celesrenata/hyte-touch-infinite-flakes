@@ -5,47 +5,37 @@
 ### Core Components
 - **flake.nix**: Main flake definition with inputs (nixpkgs, home-manager, hyprland, quickshell)
 - **configuration.nix**: Base NixOS system configuration
-- **modules/hyte-touch.nix**: Custom NixOS module for Hyte display management
-- **home/touchdisplay.nix**: Home-manager configuration for touch display user
+- **modules/hyte-touch.nix**: Custom NixOS module for isolated Cage session
+- **packages/start-hyte-touch.nix**: Startup script package
 
-### Display Detection System
-```bash
-# Detection script logic
-for card in /sys/class/drm/card*-DP-*; do
-    if grep -q "2560x682\|3840x1100" "$card/modes"; then
-        # Found Hyte display
-    fi
-done
-```
+### Display Isolation System
+- **Main Session**: Hyprland excludes DP-3 via config snippet
+- **Touch Session**: Cage compositor runs on DP-3 only
+- **Input Mapping**: Touchscreen disabled in main session, active in Cage
 
 ### Service Architecture
-1. **hyprland-exclude-hyte.service**: Excludes Hyte display from main desktop
-2. **touchdisplay-session.service**: Manages dedicated Sway session for touch display
-3. **Auto-detection**: Dynamic display identification at boot
+1. **systemd user service**: `hyte-touch-display.service` manages Cage session
+2. **Auto-detection**: Dynamically finds DP-3 and correct DRM device
+3. **Restart policy**: Automatic restart on failure
 
-### User Isolation
-- **touchdisplay user**: System user (UID 999) for display session
-- **Separate runtime**: `/run/user/999` for isolated session
-- **Security**: No keybindings, limited system access
+### Compositor Choice
+- **Cage**: Minimal Wayland kiosk compositor (single fullscreen app)
+- **Benefits**: Lightweight, no window management overhead, perfect for dedicated display
+- **Alternative**: Could use Weston for more features
 
 ## Widget System
 
 ### QuickShell Integration
 - **Framework**: QuickShell (Qt-based shell framework)
-- **Configuration**: QML-based widget definitions
-- **Widgets**: Temperature graphs, system usage, music visualizer, backgrounds
+- **Configuration**: QML-based widget definitions in config/quickshell/
+- **Widgets**: Temperature graphs, system usage, music visualizer
 
 ### Touch Input Handling
-- **Input mapping**: Touch device mapped to Hyte display output
+- **Input mapping**: Touch device automatically mapped to Cage output
+- **Isolation**: Touchscreen disabled in main Hyprland session
 - **Gesture support**: Swipe navigation between widget pages
-- **Settings**: Configurable sensitivity and timeouts
-
-## Package Management
-- **Custom packages**: system-monitor, touch-widgets
-- **Dependencies**: lm_sensors, procps, nvidia-system-monitor-qt
-- **Build system**: Nix derivations with proper wrapping
 
 ## Configuration Files
-- **Sway config**: `/etc/sway/touchdisplay.conf`
-- **QuickShell config**: `/etc/quickshell/touch-config.qml`
-- **Settings**: JSON-based configuration in user home
+- **Hyprland exclusion**: `config/hyprland-exclude-dp3.conf`
+- **QuickShell config**: `config/quickshell/shell.qml`
+- **Startup script**: `packages/start-hyte-touch.nix`

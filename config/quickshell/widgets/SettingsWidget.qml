@@ -1,5 +1,6 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
+import QtQuick
+import QtQuick.Controls
+import Quickshell.Io
 
 Rectangle {
     color: "#1a1a1a"
@@ -225,9 +226,8 @@ Rectangle {
     }
     
     function setBrightness(value) {
-        Process {
-            program: "sh"
-            arguments: ["-c", "echo " + Math.round(value * 255) + " > /sys/class/backlight/*/brightness"]
-        }
+        var process = Qt.createQmlObject('import Quickshell.Io; Process {}', null)
+        process.command = ["sh", "-c", "echo " + Math.round(value * 255) + " > /sys/class/backlight/*/brightness"]
+        process.running = true
     }
 }

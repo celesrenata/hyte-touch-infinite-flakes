@@ -1,6 +1,6 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import Quickshell 1.0
+import QtQuick
+import QtQuick.Controls
+import Quickshell
 
 ShellRoot {
     id: root
@@ -9,20 +9,34 @@ ShellRoot {
     property int totalPages: 4
     
     Variants {
-        variants: [
-            Variant {
-                name: "touch-display"
-                
-                PanelWindow {
-                    id: touchPanel
-                    anchors.fill: true
-                    color: "transparent"
+        model: Quickshell.screens
+        
+        PanelWindow {
+            property var modelData
+            screen: modelData
+            id: touchPanel
+            implicitWidth: screen.width
+            implicitHeight: screen.height
+            color: "transparent"
+                    
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#1a1a1a"
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: "HYTE TOUCH INTERFACE\nScreen: " + (parent.parent.screen ? parent.parent.screen.name : "Unknown") + "\nSwipe to navigate"
+                            color: "#00ff88"
+                            font.pixelSize: 32
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+                    }
                     
                     // Background layer
-                    BackgroundWidget {
-                        anchors.fill: parent
-                        z: -1
-                    }
+                    // BackgroundWidget {
+                    //     anchors.fill: parent
+                    //     z: -1
+                    // }
                     
                     // Main swipe container
                     SwipeView {
@@ -61,9 +75,14 @@ ShellRoot {
                         
                         // Page 3: Detailed System Usage
                         Item {
-                            SystemUsageDetailWidget {
-                                anchors.fill: parent
-                                anchors.margins: 10
+                            // SystemUsageDetailWidget {
+                            //     anchors.fill: parent
+                            //     anchors.margins: 10
+                            // }
+                            Text {
+                                anchors.centerIn: parent
+                                text: "System Usage Details"
+                                color: "white"
                             }
                         }
                         
@@ -79,10 +98,10 @@ ShellRoot {
                                     height: parent.height * 0.6
                                 }
                                 
-                                SettingsWidget {
-                                    width: parent.width
-                                    height: parent.height * 0.4
-                                }
+                                // SettingsWidget {
+                                //     width: parent.width
+                                //     height: parent.height * 0.4
+                                // }
                             }
                         }
                     }
@@ -137,78 +156,5 @@ ShellRoot {
                         }
                     }
                 }
-            }
-        ]
+        }
     }
-}
-                        
-                        // Overview page
-                        Item {
-                            Row {
-                                anchors.fill: parent
-                                
-                                Column {
-                                    width: parent.width * 0.7
-                                    height: parent.height
-                                    
-                                    TemperatureWidget {
-                                        width: parent.width
-                                        height: parent.height * 0.5
-                                    }
-                                    
-                                    SystemUsageWidget {
-                                        width: parent.width
-                                        height: parent.height * 0.5
-                                    }
-                                }
-                                
-                                MusicVisualizerWidget {
-                                    width: parent.width * 0.3
-                                    height: parent.height
-                                }
-                            }
-                        }
-                        
-                        TemperatureDetailWidget {}
-                        SystemUsageDetailWidget {}
-                        SettingsWidget {}
-                    }
-                    
-                    PageIndicator {
-                        anchors.bottom: parent.bottom
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.margins: 10
-                        count: swipeView.count
-                        currentIndex: swipeView.currentIndex
-                        delegate: Rectangle {
-                            width: 8
-                            height: 8
-                            radius: 4
-                            color: index === swipeView.currentIndex ? "white" : "#666"
-                        }
-                    }
-                    
-                    MultiPointTouchArea {
-                        anchors.fill: parent
-                        
-                        property real startX: 0
-                        property real threshold: 50
-                        
-                        onPressed: startX = touchPoints[0].x
-                        
-                        onReleased: {
-                            let deltaX = touchPoints[0].x - startX
-                            if (Math.abs(deltaX) > threshold) {
-                                if (deltaX > 0 && swipeView.currentIndex > 0) {
-                                    swipeView.currentIndex--
-                                } else if (deltaX < 0 && swipeView.currentIndex < swipeView.count - 1) {
-                                    swipeView.currentIndex++
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        ]
-    }
-}
