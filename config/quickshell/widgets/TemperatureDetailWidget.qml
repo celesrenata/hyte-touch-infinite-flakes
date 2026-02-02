@@ -1,29 +1,27 @@
 import QtQuick
+import "../"
 
 Rectangle {
     id: tempDetailWidget
     color: "#1e1e1e"
     radius: 8
     
-    property real cpuTemp: 65.0
-    property real gpuTemp: 72.0
-    property real ambientTemp: 28.0
     property var tempHistory: []
     
     Timer {
-        interval: 1000
+        interval: 2000
         running: true
         repeat: true
+        triggeredOnStart: true
         onTriggered: {
-            cpuTemp = 60 + Math.random() * 20
-            gpuTemp = 65 + Math.random() * 25
-            ambientTemp = 25 + Math.random() * 10
-            
-            // Add to history (keep last 30 points)
-            tempHistory.push({cpu: cpuTemp, gpu: gpuTemp, ambient: ambientTemp})
-            if (tempHistory.length > 30) {
-                tempHistory.shift()
+            // Add to history (keep last 60 points = 2 minutes)
+            var newHistory = tempHistory.slice()
+            newHistory.push({cpu: SystemMonitor.cpuTemp, gpu: SystemMonitor.gpuTemp})
+            if (newHistory.length > 60) {
+                newHistory.shift()
             }
+            tempHistory = newHistory
+            canvas.requestPaint()
         }
     }
     
@@ -33,92 +31,107 @@ Rectangle {
         spacing: 20
         
         Text {
-            text: "Detailed Temperature Monitoring"
+            text: "Temperature History"
             color: "#00ff88"
             font.pixelSize: 24
             font.bold: true
             anchors.horizontalCenter: parent.horizontalCenter
         }
         
-        // Temperature histogram
+        // Temperature graph
         Rectangle {
-            width: parent.width - 40
-            height: 200
+            width: parent.width
+            height: parent.height - 80
             color: "#2a2a2a"
             radius: 8
-            anchors.horizontalCenter: parent.horizontalCenter
             
-            Text {
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.margins: 10
-                text: "Temperature History"
-                color: "#00ff88"
-                font.pixelSize: 16
-                font.bold: true
-            }
-            
-            Row {
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
+            Canvas {
+                id: canvas
+                anchors.fill: parent
                 anchors.margins: 20
-                height: 120
-                spacing: 2
                 
-                Repeater {
-                    model: Math.min(tempHistory.length, 30)
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.clearRect(0, 0, width, height)
                     
-                    Rectangle {
-                        width: (parent.width - (29 * 2)) / 30
-                        height: tempHistory[index] ? (tempHistory[index].cpu / 100) * parent.height : 0
-                        color: {
-                            if (!tempHistory[index]) return "#333"
-                            var temp = tempHistory[index].cpu
-                            return temp > 80 ? "#ff4444" : temp > 60 ? "#ffaa00" : "#00ff88"
-                        }
-                        anchors.bottom: parent.bottom
-                        
-                        Rectangle {
-                            width: parent.width
-                            height: tempHistory[index] ? (tempHistory[index].gpu / 100) * parent.parent.height : 0
-                            color: {
-                                if (!tempHistory[index]) return "#333"
-                                var temp = tempHistory[index].gpu
-                                return temp > 85 ? "#ff4444" : temp > 70 ? "#ffaa00" : "#4ecdc4"
-                            }
-                            anchors.bottom: parent.bottom
-                            opacity: 0.7
-                        }
+                    if (tempHistory.length < 2) return
+                    
+                    // Find actual min/max temps for better scaling
+                    var maxTemp = 0
+                    var minTemp = 100
+                    for (var i = 0; i < tempHistory.length; i++) {
+                        maxTemp = Math.max(maxTemp, tempHistory[i].cpu, tempHistory[i].gpu)
+                        minTemp = Math.min(minTemp, tempHistory[i].cpu, tempHistory[i].gpu)
                     }
+                    // Add padding
+                    maxTemp += 5
+                    minTemp = Math.max(0, minTemp - 5)
+                    
+                    var xStep = width / Math.max(tempHistory.length - 1, 1)
+                    
+                    // Draw CPU line
+                    ctx.strokeStyle = "#00ff88"
+                    ctx.lineWidth = 3
+                    ctx.beginPath()
+                    for (var i = 0; i < tempHistory.length; i++) {
+                        var x = i * xStep
+                        var y = height - ((tempHistory[i].cpu - minTemp) / (maxTemp - minTemp)) * height
+                        if (i === 0) ctx.moveTo(x, y)
+                        else ctx.lineTo(x, y)
+                    }
+                    ctx.stroke()
+                    
+                    // Draw GPU line
+                    ctx.strokeStyle = "#4ecdc4"
+                    ctx.lineWidth = 3
+                    ctx.beginPath()
+                    for (var i = 0; i < tempHistory.length; i++) {
+                        var x = i * xStep
+                        var y = height - ((tempHistory[i].gpu - minTemp) / (maxTemp - minTemp)) * height
+                        if (i === 0) ctx.moveTo(x, y)
+                        else ctx.lineTo(x, y)
+                    }
+                    ctx.stroke()
                 }
             }
             
             // Legend
             Row {
-                anchors.bottom: parent.bottom
+                anchors.top: parent.top
                 anchors.right: parent.right
-                anchors.margins: 10
+                anchors.margins: 15
                 spacing: 15
                 
                 Row {
                     spacing: 5
-                    Rectangle { width: 12; height: 12; color: "#00ff88" }
-                    Text { text: "CPU"; color: "white"; font.pixelSize: 10 }
+                    Rectangle { width: 20; height: 3; color: "#00ff88" }
+                    Text { text: "CPU"; color: "white"; font.pixelSize: 12 }
                 }
                 Row {
                     spacing: 5
-                    Rectangle { width: 12; height: 12; color: "#4ecdc4"; opacity: 0.7 }
-                    Text { text: "GPU"; color: "white"; font.pixelSize: 10 }
+                    Rectangle { width: 20; height: 3; color: "#4ecdc4" }
+                    Text { text: "GPU"; color: "white"; font.pixelSize: 12 }
                 }
             }
-        }
-        
-        Text {
-            text: "History: " + tempHistory.length + " data points"
-            color: "#666"
-            font.pixelSize: 12
-            anchors.horizontalCenter: parent.horizontalCenter
+            
+            // Current values
+            Row {
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.margins: 15
+                spacing: 30
+                
+                Text {
+                    text: "CPU: " + SystemMonitor.cpuTemp.toFixed(1) + "°C"
+                    color: "#00ff88"
+                    font.pixelSize: 14
+                }
+                Text {
+                    text: "GPU: " + SystemMonitor.gpuTemp.toFixed(1) + "°C"
+                    color: "#4ecdc4"
+                    font.pixelSize: 14
+                }
+            }
         }
     }
 }

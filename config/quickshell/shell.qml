@@ -24,11 +24,12 @@ ShellRoot {
             id: touchPanel
             implicitWidth: screen.width
             implicitHeight: screen.height
-            color: "transparent"
+            color: "transparent"  // Transparent so visualizer shows through
                     
                     Rectangle {
                         anchors.fill: parent
                         color: "#1a1a1a"
+                        opacity: 0.3  // Very transparent background
                     }
                     
                     // Main swipe container
@@ -36,6 +37,7 @@ ShellRoot {
                         id: swipeView
                         anchors.fill: parent
                         currentIndex: root.currentPage
+                        opacity: 0.85  // Widgets more opaque for readability
                         
                         onCurrentIndexChanged: root.currentPage = currentIndex
                         
@@ -201,6 +203,17 @@ ShellRoot {
                                 mouse.accepted = false
                             }
                         }
+                    }
+                    
+                    // NixOS logo in empty space below widgets
+                    Image {
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottomMargin: parent.height * 0.04
+                        source: "file:///home/celes/.config/quickshell/touch/nixos-logo.png"
+                        fillMode: Image.PreserveAspectFit
+                        width: parent.width * 0.7
+                        opacity: 0.7
                     }
                 }
         }

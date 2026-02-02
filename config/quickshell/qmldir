@@ -1,4 +1,5 @@
 singleton SystemMonitor 1.0 SystemMonitor.qml
+singleton AudioMonitor 1.0 AudioMonitor.qml
 MusicVisualizerWidget 1.0 widgets/MusicVisualizerWidget.qml
 BackgroundWidget 1.0 widgets/BackgroundWidget.qml
 NetworkWidget 1.0 widgets/NetworkWidget.qml

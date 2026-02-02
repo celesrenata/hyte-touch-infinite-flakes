@@ -131,14 +131,14 @@ Rectangle {
                     
                     if (lastTime > 0) {
                         var timeDelta = (currentTime - lastTime) / 1000
-                        wanInMBps = ((wanIn - lastWanIn) / timeDelta) / 1048576
-                        wanOutMBps = ((wanOut - lastWanOut) / timeDelta) / 1048576
-                        vpnInMBps = ((vpnIn - lastVpnIn) / timeDelta) / 1048576
-                        vpnOutMBps = ((vpnOut - lastVpnOut) / timeDelta) / 1048576
-                        wgOtherInMBps = ((wgOtherIn - lastWgOtherIn) / timeDelta) / 1048576
-                        wgOtherOutMBps = ((wgOtherOut - lastWgOtherOut) / timeDelta) / 1048576
-                        k8sInMBps = ((k8sIn - lastK8sIn) / timeDelta) / 1048576
-                        k8sOutMBps = ((k8sOut - lastK8sOut) / timeDelta) / 1048576
+                        wanInMBps = Math.max(0, ((wanIn - lastWanIn) / timeDelta) / 1048576)
+                        wanOutMBps = Math.max(0, ((wanOut - lastWanOut) / timeDelta) / 1048576)
+                        vpnInMBps = Math.max(0, ((vpnIn - lastVpnIn) / timeDelta) / 1048576)
+                        vpnOutMBps = Math.max(0, ((vpnOut - lastVpnOut) / timeDelta) / 1048576)
+                        wgOtherInMBps = Math.max(0, ((wgOtherIn - lastWgOtherIn) / timeDelta) / 1048576)
+                        wgOtherOutMBps = Math.max(0, ((wgOtherOut - lastWgOtherOut) / timeDelta) / 1048576)
+                        k8sInMBps = Math.max(0, ((k8sIn - lastK8sIn) / timeDelta) / 1048576)
+                        k8sOutMBps = Math.max(0, ((k8sOut - lastK8sOut) / timeDelta) / 1048576)
                         
                         wanInHistory.push(wanInMBps)
                         wanOutHistory.push(wanOutMBps)
