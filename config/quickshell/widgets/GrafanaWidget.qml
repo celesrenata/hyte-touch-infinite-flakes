@@ -17,6 +17,10 @@ Rectangle {
     property int pendingPods: 0
     property int failedPods: 0
     property real totalPower: 0
+    Component.onCompleted: {
+        console.log("GrafanaWidget loaded")
+        console.log("GRAFANA_API_TOKEN env:", Quickshell.env("GRAFANA_API_TOKEN") ? "SET" : "NOT SET")
+    }
     
     Process {
         id: prometheusQuery
@@ -48,6 +52,14 @@ Rectangle {
                     console.log("Parse error:", e, "Text:", text.substring(0, 100))
                 }
                 memoryQuery.running = true
+            }
+        }
+        
+        stderr: StdioCollector {
+            onStreamFinished: {
+                if (text && text.length > 0) {
+                    console.log("Stderr:", text)
+                }
             }
         }
     }
