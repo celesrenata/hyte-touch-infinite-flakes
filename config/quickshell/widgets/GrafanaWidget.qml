@@ -69,7 +69,7 @@ Rectangle {
         running: false
         command: ["/run/current-system/sw/bin/sh", "-c",
             "curl -s -H 'Authorization: Bearer " + (Quickshell.env("GRAFANA_API_TOKEN") || "") + "' " +
-            "-G --data-urlencode 'query=(1 - sum(node_memory_MemAvailable_bytes{instance=~\"10.1.1.(12|13|14|15):9100\"}) / sum(node_memory_MemTotal_bytes{instance=~\"10.1.1.(12|13|14|15):9100\"})) * 100' " +
+            "-G --data-urlencode 'query=avg(1 - node_memory_MemAvailable_bytes{instance=~\"10.1.1.(12|13|14|15):9100\"} / node_memory_MemTotal_bytes{instance=~\"10.1.1.(12|13|14|15):9100\"}) * 100' " +
             "'https://grafana.celestium.life/api/datasources/proxy/uid/edz81hfw02t4wb/api/v1/query'"]
         
         stdout: StdioCollector {
@@ -111,7 +111,7 @@ Rectangle {
         running: false
         command: ["/run/current-system/sw/bin/sh", "-c",
             "curl -s -H 'Authorization: Bearer " + (Quickshell.env("GRAFANA_API_TOKEN") || "") + "' " +
-            "-G --data-urlencode 'query=(1 - sum(node_filesystem_avail_bytes{instance=~\"10.1.1.(12|13|14|15):9100\",mountpoint=\"/\"}) / sum(node_filesystem_size_bytes{instance=~\"10.1.1.(12|13|14|15):9100\",mountpoint=\"/\"})) * 100' " +
+            "-G --data-urlencode 'query=avg(1 - node_filesystem_avail_bytes{instance=~\"10.1.1.(12|13|14|15):9100\",mountpoint=\"/\"} / node_filesystem_size_bytes{instance=~\"10.1.1.(12|13|14|15):9100\",mountpoint=\"/\"}) * 100' " +
             "'https://grafana.celestium.life/api/datasources/proxy/uid/edz81hfw02t4wb/api/v1/query'"]
         
         stdout: StdioCollector {
