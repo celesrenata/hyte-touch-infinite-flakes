@@ -120,14 +120,15 @@ Rectangle {
                         initialK8sOut = k8sOut
                     }
                     
-                    totalWanInGB = (wanIn - initialWanIn)
-                    totalWanOutGB = (wanOut - initialWanOut)
-                    totalVpnInGB = (vpnIn - initialVpnIn)
-                    totalVpnOutGB = (vpnOut - initialVpnOut)
-                    totalWgOtherInGB = (wgOtherIn - initialWgOtherIn)
-                    totalWgOtherOutGB = (wgOtherOut - initialWgOtherOut)
-                    totalK8sInGB = (k8sIn - initialK8sIn)
-                    totalK8sOutGB = (k8sOut - initialK8sOut)
+                    var maxCounter = 4294967296 // 2^32 for 32-bit counter wrap
+                    totalWanInGB = wanIn >= initialWanIn ? (wanIn - initialWanIn) : (maxCounter - initialWanIn + wanIn)
+                    totalWanOutGB = wanOut >= initialWanOut ? (wanOut - initialWanOut) : (maxCounter - initialWanOut + wanOut)
+                    totalVpnInGB = vpnIn >= initialVpnIn ? (vpnIn - initialVpnIn) : (maxCounter - initialVpnIn + vpnIn)
+                    totalVpnOutGB = vpnOut >= initialVpnOut ? (vpnOut - initialVpnOut) : (maxCounter - initialVpnOut + vpnOut)
+                    totalWgOtherInGB = wgOtherIn >= initialWgOtherIn ? (wgOtherIn - initialWgOtherIn) : (maxCounter - initialWgOtherIn + wgOtherIn)
+                    totalWgOtherOutGB = wgOtherOut >= initialWgOtherOut ? (wgOtherOut - initialWgOtherOut) : (maxCounter - initialWgOtherOut + wgOtherOut)
+                    totalK8sInGB = k8sIn >= initialK8sIn ? (k8sIn - initialK8sIn) : (maxCounter - initialK8sIn + k8sIn)
+                    totalK8sOutGB = k8sOut >= initialK8sOut ? (k8sOut - initialK8sOut) : (maxCounter - initialK8sOut + k8sOut)
                     
                     if (lastTime > 0) {
                         var timeDelta = (currentTime - lastTime) / 1000
