@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Wayland
 
 ShellRoot {
     id: root
@@ -22,6 +23,7 @@ ShellRoot {
             property var modelData
             screen: modelData
             id: touchPanel
+            WlrLayershell.layer: WlrLayer.Overlay
             implicitWidth: screen.width
             implicitHeight: screen.height
             color: "transparent"  // Transparent so visualizer shows through

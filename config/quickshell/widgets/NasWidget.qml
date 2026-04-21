@@ -24,8 +24,8 @@ Rectangle {
             "nix-shell -p net-snmp --run \"snmpget -v2c -c public 192.168.42.8 " +
             "SNMPv2-MIB::sysName.0 " +
             "DISMAN-EVENT-MIB::sysUpTimeInstance " +
-            "HOST-RESOURCES-MIB::hrStorageSize.56 " +
-            "HOST-RESOURCES-MIB::hrStorageUsed.56 && " +
+            "HOST-RESOURCES-MIB::hrStorageSize.57 " +
+            "HOST-RESOURCES-MIB::hrStorageUsed.57 && " +
             "snmpwalk -v2c -c public 192.168.42.8 .1.3.6.1.4.1.6574.101.1.1.3 && " +
             "snmpwalk -v2c -c public 192.168.42.8 .1.3.6.1.4.1.6574.101.1.1.4\""]
         
@@ -43,10 +43,10 @@ Rectangle {
                         } else if (lines[i].includes('sysUpTimeInstance')) {
                             var match = lines[i].match(/\((\d+)\)/)
                             if (match) uptime = parseInt(match[1]) / 8640000
-                        } else if (lines[i].includes('hrStorageSize.56')) {
+                        } else if (lines[i].includes('hrStorageSize.57')) {
                             var size = parseInt(lines[i].split('INTEGER: ')[1])
                             storageTotal = size * 32768 / 1099511627776
-                        } else if (lines[i].includes('hrStorageUsed.56')) {
+                        } else if (lines[i].includes('hrStorageUsed.57')) {
                             var used = parseInt(lines[i].split('INTEGER: ')[1])
                             storageUsed = used * 32768 / 1099511627776
                         } else if (lines[i].includes('.101.1.1.3.')) {

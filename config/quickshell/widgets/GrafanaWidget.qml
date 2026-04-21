@@ -258,7 +258,7 @@ Rectangle {
         running: false
         command: ["/run/current-system/sw/bin/sh", "-c",
             "curl -s -H 'Authorization: Bearer " + (Quickshell.env("GRAFANA_API_TOKEN") || "") + "' " +
-            "-G --data-urlencode 'query=sum(kasa_power_load)' " +
+            "-G --data-urlencode 'query=sum(kasa_power_load) + sum(DCGM_FI_DEV_POWER_USAGE)' " +
             "'https://grafana.celestium.life/api/datasources/proxy/uid/edz81hfw02t4wb/api/v1/query'"]
         
         stdout: StdioCollector {
