@@ -13,6 +13,7 @@ Rectangle {
     property real gpuUtil: 0
     property real gpuMemory: 0
     property real gpuPower: 0
+    property real gpuTemp: 0
     property int runningPods: 0
     property int pendingPods: 0
     property int failedPods: 0
@@ -183,6 +184,27 @@ Rectangle {
                     var data = JSON.parse(text)
                     if (data.data && data.data.result && data.data.result[0]) {
                         gpuPower = parseFloat(data.data.result[0].value[1])
+                    }
+                } catch (e) {}
+                gpuTempQuery.running = true
+            }
+        }
+    }
+    
+    Process {
+        id: gpuTempQuery
+        running: false
+        command: ["/run/current-system/sw/bin/sh", "-c",
+            "curl -s -H 'Authorization: Bearer " + (Quickshell.env("GRAFANA_API_TOKEN") || "") + "' " +
+            "-G --data-urlencode 'query=max(DCGM_FI_DEV_GPU_TEMP)' " +
+            "'https://grafana.celestium.life/api/datasources/proxy/uid/edz81hfw02t4wb/api/v1/query'"]
+        
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var data = JSON.parse(text)
+                    if (data.data && data.data.result && data.data.result[0]) {
+                        gpuTemp = parseFloat(data.data.result[0].value[1])
                     }
                 } catch (e) {}
                 podsQuery.running = true
@@ -531,6 +553,21 @@ Rectangle {
                 Text {
                     text: gpuPower.toFixed(0) + "W"
                     color: gpuPower > 1500 ? "#ff4444" : gpuPower > 1000 ? "#ffaa00" : "#00ff88"
+                    font.pixelSize: 24
+                    font.bold: true
+                }
+            }
+            
+            Column {
+                spacing: 3
+                Text {
+                    text: "GPU Temp"
+                    color: "#888"
+                    font.pixelSize: 14
+                }
+                Text {
+                    text: gpuTemp.toFixed(0) + "°C"
+                    color: gpuTemp > 85 ? "#ff4444" : gpuTemp > 70 ? "#ffaa00" : "#00ff88"
                     font.pixelSize: 24
                     font.bold: true
                 }
