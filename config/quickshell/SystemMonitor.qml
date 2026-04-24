@@ -10,6 +10,7 @@ QtObject {
     property real gpuUsage: 0
     property real gpuMemUsage: 0
     property real diskUsage: 0
+    property real disk2Usage: 0
     property real cpuTemp: 0
     property real gpuTemp: 0
     property real moboTemp: 0
@@ -36,7 +37,7 @@ QtObject {
     
     property var proc: Process {
         running: true
-        command: ["/run/current-system/sw/bin/sh", "-c", "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/celes/bin:$PATH; echo $(top -bn1 | grep 'Cpu(s)' | awk '{print 100 - $8}');echo $(free | grep Mem | awk '{print ($3/$2) * 100}');echo $(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits);echo $(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits | awk -F', ' '{print ($1/$2)*100}');echo $(df / | tail -1 | awk '{print $5}' | tr -d '%');echo $(sensors | grep 'Tctl:' | awk '{print $2}' | tr -d '+°C');echo $(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits);echo $(sensors | grep 'Motherboard:' | awk '{print $2}' | tr -d '+°C');echo $(sensors | grep 'Chipset:' | awk '{print $2}' | tr -d '+°C');echo $(echo \"scale=2; $(cat /sys/class/hwmon/hwmon3/in0_input) * $(cat /sys/class/hwmon/hwmon3/curr1_input) / 1000000\" | bc);echo $(nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits);cat /proc/net/dev | grep -E 'enp5s0f0|enp5s0f1|br0' | awk '{rx+=$2; tx+=$10} END {print rx,tx}'"]
+        command: ["/run/current-system/sw/bin/sh", "-c", "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/celes/bin:$PATH; echo $(top -bn1 | grep 'Cpu(s)' | awk '{print 100 - $8}');echo $(free | grep Mem | awk '{print ($3/$2) * 100}');echo $(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits);echo $(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits | awk -F', ' '{print ($1/$2)*100}');echo $(df / | tail -1 | awk '{print $5}' | tr -d '%');echo $(df /mnt/fast | tail -1 | awk '{print $5}' | tr -d '%');echo $(sensors | grep 'Tctl:' | awk '{print $2}' | tr -d '+°C');echo $(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits);echo $(sensors | grep 'Motherboard:' | awk '{print $2}' | tr -d '+°C');echo $(sensors | grep 'Chipset:' | awk '{print $2}' | tr -d '+°C');echo $(echo \"scale=2; $(cat /sys/class/hwmon/hwmon3/in0_input) * $(cat /sys/class/hwmon/hwmon3/curr1_input) / 1000000\" | bc);echo $(nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits);cat /proc/net/dev | grep -E 'enp5s0f0|enp5s0f1|br0' | awk '{rx+=$2; tx+=$10} END {print rx,tx}'"]
         
         stdout: StdioCollector {
             onStreamFinished: {
@@ -46,15 +47,16 @@ QtObject {
                 root.gpuUsage = parseFloat(lines[2]) || 0
                 root.gpuMemUsage = parseFloat(lines[3]) || 0
                 root.diskUsage = parseFloat(lines[4]) || 0
-                root.cpuTemp = parseFloat(lines[5]) || 0
-                root.gpuTemp = parseFloat(lines[6]) || 0
-                root.moboTemp = parseFloat(lines[7]) || 0
-                root.chipsetTemp = parseFloat(lines[8]) || 0
-                root.cpuPower = parseFloat(lines[9]) || 0
-                root.gpuPower = parseFloat(lines[10]) || 0
+                root.disk2Usage = parseFloat(lines[5]) || 0
+                root.cpuTemp = parseFloat(lines[6]) || 0
+                root.gpuTemp = parseFloat(lines[7]) || 0
+                root.moboTemp = parseFloat(lines[8]) || 0
+                root.chipsetTemp = parseFloat(lines[9]) || 0
+                root.cpuPower = parseFloat(lines[10]) || 0
+                root.gpuPower = parseFloat(lines[11]) || 0
                 
                 // Network stats
-                var netStats = lines[11] ? lines[11].split(' ') : [0, 0]
+                var netStats = lines[12] ? lines[12].split(' ') : [0, 0]
                 var rx = parseFloat(netStats[0]) || 0
                 var tx = parseFloat(netStats[1]) || 0
                 

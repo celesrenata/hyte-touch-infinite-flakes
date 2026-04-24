@@ -278,5 +278,34 @@ Rectangle {
                 font.pixelSize: 10
                 anchors.horizontalCenter: parent.horizontalCenter
             }
+            
+            // Disk 2 Usage (/mnt/fast)
+            Row {
+                spacing: 10
+                Text {
+                    text: "Fast"
+                    color: "#888"
+                    font.pixelSize: 14
+                    width: 40
+                }
+                Rectangle {
+                    width: 210
+                    height: 8
+                    color: "#333"
+                    radius: 4
+                    Rectangle {
+                        width: parent.width * (SystemMonitor.disk2Usage / 100)
+                        height: parent.height
+                        color: SystemMonitor.disk2Usage > 90 ? "#ff4444" : SystemMonitor.disk2Usage > 80 ? "#ffaa00" : "#00ff88"
+                        radius: 4
+                    }
+                }
+                Text {
+                    text: SystemMonitor.disk2Usage.toFixed(0) + "%"
+                    color: SystemMonitor.disk2Usage > 90 ? "#ff4444" : "white"
+                    font.bold: SystemMonitor.disk2Usage > 90
+                    font.pixelSize: 16
+                }
+            }
         }
     }
