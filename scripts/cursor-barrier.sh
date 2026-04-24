@@ -18,10 +18,9 @@ while true; do
     if [[ -n "$bounds" ]]; then
         read dp3_x dp3_y dp3_w dp3_h <<< "$bounds"
         
-        # Check if cursor is in DP-3 area
-        if [[ $x -ge $dp3_x && $x -lt $((dp3_x + dp3_w)) && 
-              $y -ge $dp3_y && $y -lt $((dp3_y + dp3_h)) ]]; then
-            # Move cursor back to edge of main monitors
+        # Block cursor from crossing into DP-3 x boundary
+        if [[ $x -ge $dp3_x ]]; then
+            # Move cursor back to edge of main monitor
             hyprctl dispatch movecursor $((dp3_x - 1)) $y
         fi
     fi
