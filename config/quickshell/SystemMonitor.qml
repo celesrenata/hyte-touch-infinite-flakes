@@ -37,8 +37,8 @@ QtObject {
     
     property var proc: Process {
         running: true
-        command: ["/run/current-system/sw/bin/sh", "-c", "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/celes/bin:$PATH; echo $(top -bn1 | grep 'Cpu(s)' | awk '{print 100 - $8}');echo $(free | grep Mem | awk '{print ($3/$2) * 100}');echo $(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits);echo $(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits | awk -F', ' '{print ($1/$2)*100}');echo $(df / | tail -1 | awk '{print $5}' | tr -d '%');echo $(df /mnt/fast | tail -1 | awk '{print $5}' | tr -d '%');echo $(sensors | grep 'Tctl:' | awk '{print $2}' | tr -d '+°C');echo $(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits);echo $(sensors | grep 'Motherboard:' | awk '{print $2}' | tr -d '+°C');echo $(sensors | grep 'Chipset:' | awk '{print $2}' | tr -d '+°C');echo $(echo "scale=2; $(cat $(grep -l asusec /sys/class/hwmon/hwmon*/name | sed 's/name/in0_input/') ) * $(cat $(grep -l asusec /sys/class/hwmon/hwmon*/name | sed 's/name/curr1_input/') ) / 1000000" | bc);echo $(nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits);cat /proc/net/dev | grep -E 'enp5s0f0|enp5s0f1|br0' | awk '{rx+=$2; tx+=$10} END {print rx,tx}'"]
-        
+        command: ["/home/celes/.config/quickshell/touch/system-monitor.sh"]
+
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = text.trim().split('\n')
